@@ -11,7 +11,7 @@ def generate_report(progress_data):
     report = {}
     for key, value in progress_data.items():
         if key.startswith("page_"):
-            page_num_str = key.replace("page_", "")
+            page_num_str = str(int(key.replace("page_", "")) + 1)
             
             if isinstance(value, dict) and value.get("status") == "error":
                 report[page_num_str] = {

@@ -5,13 +5,13 @@ from src.metadata import generate_report, inject_pdf_metadata
 
 def test_generate_report_success():
     progress_data = {
-        "page_1": {
+        "page_0": {
             "status": "success",
             "category": "Invoice",
             "reason": "Looks like an invoice",
             "telemetry": {"duration": 1.2}
         },
-        "page_2": {
+        "page_1": {
             "status": "success",
             "category": "Receipt",
             "reason": "Contains receipt details",
@@ -29,12 +29,12 @@ def test_generate_report_success():
 
 def test_generate_report_failed():
     progress_data = {
-        "page_3": {
+        "page_2": {
             "status": "error",
             "error": "Timeout occurred",
             "telemetry": {"retries": 3}
         },
-        "page_4": "error"
+        "page_3": "error"
     }
     
     report = generate_report(progress_data)

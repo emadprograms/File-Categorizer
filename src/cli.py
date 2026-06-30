@@ -68,7 +68,7 @@ def main():
                 json.dump(report_data, f, indent=4, ensure_ascii=False)
             
             failed_pages = [
-                page_key.replace("page_", "") 
+                str(int(page_key.replace("page_", "")) + 1) 
                 for page_key, page_status in status.items() 
                 if (isinstance(page_status, dict) and page_status.get("status") == "error") or page_status == "error"
             ]

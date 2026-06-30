@@ -20,20 +20,26 @@ requirements-completed: []
 duration: "5 min"
 completed: "2026-06-30T11:31:00Z"
 coverage:
-  - name: "Implement API Integration & Rate Limiter"
-    kind: "verification"
-    ref: "tests/test_ai_classification.py"
-    status: "pass"
+  - id: "cov_api_integration"
+    description: "Implement API Integration & Rate Limiter"
+    verification:
+      - kind: "unit"
+        ref: "tests/test_ai_classification.py"
+        status: "pass"
     human_judgment: false
-  - name: "Implement Fallback Strategy & Cache Updating"
-    kind: "verification"
-    ref: "tests/test_ai_classification.py"
-    status: "pass"
+  - id: "cov_fallback_strategy"
+    description: "Implement Fallback Strategy & Cache Updating"
+    verification:
+      - kind: "unit"
+        ref: "tests/test_ai_classification.py"
+        status: "pass"
     human_judgment: false
-  - name: "Integrate with CLI"
-    kind: "verification"
-    ref: "tests/test_ai_classification.py"
-    status: "pass"
+  - id: "cov_cli_integration"
+    description: "Integrate with CLI"
+    verification:
+      - kind: "unit"
+        ref: "tests/test_ai_classification.py"
+        status: "pass"
     human_judgment: false
 ---
 

@@ -24,7 +24,8 @@ def classify_pages(tmp_dir: str, categories: list) -> None:
     last_call_time = 0
     
     for page_key, current_status in status.items():
-        if current_status != "success":
+        is_ready = (current_status == "success") or (isinstance(current_status, dict) and current_status.get("status") == "extracted")
+        if not is_ready:
             continue
             
         page_num = page_key.split("_")[1]
@@ -32,7 +33,7 @@ def classify_pages(tmp_dir: str, categories: list) -> None:
         
         if not os.path.exists(image_path):
             logger.error(f"Image not found: {image_path}")
-            status[page_key] = "error"
+            status[page_key] = {"status": "error", "error": "Image not found"}
             continue
             
         # Try up to 3 times for classification
@@ -53,17 +54,18 @@ def classify_pages(tmp_dir: str, categories: list) -> None:
                     "Categorize this Arabic PDF page. "
                     "You must select EXACTLY ONE category from the following list: "
                     f"{categories}. "
-                    "Respond with a JSON object containing a single key 'category' with the selected category."
+                    "Respond with a JSON object containing 'category' (the chosen category) "
+                    "and 'reason' (the thinking or evidence from the page justifying this choice)."
                 )
                 
                 last_call_time = time.time()
                 
                 response = client.models.generate_content(
-                    model='gemma-4-26b',
+                    model='gemma-4-31b-it',
                     contents=[image, prompt],
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
-                        response_schema={"type": "object", "properties": {"category": {"type": "string"}}, "required": ["category"]}
+                        response_schema={"type": "object", "properties": {"category": {"type": "string"}, "reason": {"type": "string"}}, "required": ["category", "reason"]}
                     )
                 )
                 
@@ -72,7 +74,10 @@ def classify_pages(tmp_dir: str, categories: list) -> None:
                     category = result.get("category")
                     
                     if category in categories:
-                        status[page_key] = category
+                        status[page_key] = {
+                            "category": category,
+                            "reason": result.get("reason", "")
+                        }
                         classified = True
                         break
                     else:
@@ -96,7 +101,7 @@ def classify_pages(tmp_dir: str, categories: list) -> None:
                 logger.error(f"Unexpected error classifying {page_key}: {e}")
                 
         if not classified:
-            status[page_key] = "error"
+            status[page_key] = {"status": "error", "error": "Classification failed after retries"}
             
         # Save progress after each page
         with open(progress_file, "w", encoding="utf-8") as f:

@@ -142,28 +142,32 @@ def process_pdf(pdf_path: str, output_dir: str) -> tuple[dict, str]:
     # First pass
     for page_num in range(num_pages):
         page_key = f"page_{page_num}"
-        if status.get(page_key) == "success":
+        current = status.get(page_key)
+        
+        if isinstance(current, dict) and current.get("status") in ("extracted", "classified"):
             continue
             
         try:
             extract_and_clean_page(pdf_document, page_num, tmp_dir)
-            status[page_key] = "success"
+            status[page_key] = {"status": "extracted"}
         except Exception as e:
             logger.error(f"Failed to process page {page_num} of {pdf_path}: {e}")
-            status[page_key] = "error"
+            status[page_key] = {"status": "error", "error": str(e)}
             
         save_progress()
         
     # Retry failed pages
     for page_num in range(num_pages):
         page_key = f"page_{page_num}"
-        if status.get(page_key) == "error":
+        current = status.get(page_key)
+        
+        if isinstance(current, dict) and current.get("status") == "error":
             try:
                 extract_and_clean_page(pdf_document, page_num, tmp_dir)
-                status[page_key] = "success"
+                status[page_key] = {"status": "extracted"}
             except Exception as e:
                 logger.error(f"Retry failed for page {page_num} of {pdf_path}: {e}")
-                status[page_key] = "error"
+                status[page_key] = {"status": "error", "error": str(e)}
                 
             save_progress()
 
