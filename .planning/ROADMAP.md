@@ -8,7 +8,7 @@
 |---|-------|------|--------------|------------------|
 | 1 | CLI Scaffolding | 1/1 | Complete    | 2026-06-30 |
 | 2 | Image Processing | 1/1 | Complete    | 2026-06-30 |
-| 3 | AI Classification | Integrate Gemma Vision to categorize cleaned images | AI-01, AI-02 | 3 |
+| 3 | AI Classification | 1/1 | Complete   | 2026-06-30 |
 | 4 | Reporting & Metadata | Save categories to PDF metadata and generate report | OUT-01, OUT-02 | 2 |
 
 ### Phase Details
