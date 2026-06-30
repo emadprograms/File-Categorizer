@@ -60,11 +60,17 @@ def main():
             if os.path.exists(progress_file):
                 with open(progress_file, "r", encoding="utf-8") as f:
                     status = json.load(f)
+                    
+            from src.metadata import generate_report, inject_pdf_metadata
+            report_data = generate_report(status)
+            
+            with open(report_path, "w", encoding="utf-8") as f:
+                json.dump(report_data, f, indent=4, ensure_ascii=False)
             
             failed_pages = [
                 page_key.replace("page_", "") 
                 for page_key, page_status in status.items() 
-                if page_status == "error"
+                if (isinstance(page_status, dict) and page_status.get("status") == "error") or page_status == "error"
             ]
             
             final_pdf_name = f"{base_name_without_ext}_categorized"
@@ -73,11 +79,13 @@ def main():
                 final_pdf_name += f"_failed_pages_{'_'.join(failed_pages)}"
             final_pdf_name += ".pdf"
             
+            final_pdf_path = os.path.join(args.output_dir, final_pdf_name)
+            inject_pdf_metadata(pdf_path, final_pdf_path, report_data)
+            
             print(f"Processed {pdf_path}. Target PDF output: {final_pdf_name}")
             
-            # Temporary: delete tmp_dir as instructed. 
-            # In Phase 3, this will happen AFTER LLM classification and PDF generation.
-            # shutil.rmtree(tmp_dir, ignore_errors=True)
+            # Temporary images cleanup
+            shutil.rmtree(tmp_dir, ignore_errors=True)
             
         except Exception as e:
             print(f"Error processing {pdf_path}: {e}", file=sys.stderr)
