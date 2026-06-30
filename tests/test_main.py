@@ -32,6 +32,22 @@ class TestUtils(unittest.TestCase):
         categories = load_categories("Invoice, Receipt, Letter")
         self.assertEqual(categories, ["Invoice", "Receipt", "Letter"])
 
+    def test_load_categories_empty(self):
+        with self.assertRaises(ValueError):
+            load_categories("")
+            
+        json_path = os.path.join(self.temp_dir.name, "empty.json")
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(["", "  "], f)
+        with self.assertRaises(ValueError):
+            load_categories(json_path)
+            
+        txt_path = os.path.join(self.temp_dir.name, "empty.txt")
+        with open(txt_path, "w", encoding="utf-8") as f:
+            f.write("\n   \n")
+        with self.assertRaises(ValueError):
+            load_categories(txt_path)
+
 class TestCLI(unittest.TestCase):
     def test_parse_args(self):
         args = parse_args(["-i", "file1.pdf", "file2.pdf", "-c", "cats.txt", "-o", "out_dir", "--instructions", "inst.txt"])

@@ -30,12 +30,18 @@ def load_categories(filepath: str) -> list[str]:
     
     with open(filepath, 'r', encoding='utf-8') as f:
         if filepath.endswith('.json'):
-            categories = json.load(f)
-            return [str(cat).strip() for cat in categories if str(cat).strip()]
+            raw_categories = json.load(f)
+            categories = [str(cat).strip() for cat in raw_categories if str(cat).strip()]
+            if not categories:
+                raise ValueError(f"No categories found in JSON file: {filepath}")
+            return categories
         else:
             categories = []
             for line in f:
                 stripped = line.strip()
                 if stripped:
                     categories.append(stripped)
+            
+            if not categories:
+                raise ValueError(f"No categories found in file: {filepath}")
             return categories

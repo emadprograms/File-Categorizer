@@ -92,7 +92,7 @@ def classify_pages(tmp_dir: str, categories: list, model: str = 'gemma-4-26b', c
                         contents=[image, prompt],
                         config=types.GenerateContentConfig(
                             response_mime_type="application/json",
-                            response_schema={"type": "object", "properties": {"category": {"type": "string"}, "reason": {"type": "string"}}, "required": ["category", "reason"]}
+                            response_schema={"type": "object", "properties": {"category": {"type": "string", "enum": categories}, "reason": {"type": "string"}}, "required": ["category", "reason"]}
                         )
                     )
                     
@@ -102,6 +102,7 @@ def classify_pages(tmp_dir: str, categories: list, model: str = 'gemma-4-26b', c
                         
                         if category in categories:
                             status[page_key] = {
+                                "status": "classified",
                                 "category": category,
                                 "reason": result.get("reason", "")
                             }
@@ -138,5 +139,7 @@ def classify_pages(tmp_dir: str, categories: list, model: str = 'gemma-4-26b', c
             status[page_key] = {"status": "error", "error": "Classification failed after retries"}
             
         # Save progress after each page
-        with open(progress_file, "w", encoding="utf-8") as f:
+        tmp_progress = progress_file + ".tmp"
+        with open(tmp_progress, "w", encoding="utf-8") as f:
             json.dump(status, f)
+        os.replace(tmp_progress, progress_file)

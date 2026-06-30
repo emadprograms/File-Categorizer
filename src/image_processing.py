@@ -180,14 +180,16 @@ def process_pdf(pdf_path: str, output_dir: str) -> tuple[dict, str]:
             pass
 
     def save_progress():
-        with open(progress_file, "w", encoding="utf-8") as f:
+        tmp_progress = progress_file + ".tmp"
+        with open(tmp_progress, "w", encoding="utf-8") as f:
             json.dump(status, f)
+        os.replace(tmp_progress, progress_file)
 
     try:
         pdf_document = fitz.open(pdf_path)
     except Exception as e:
         logger.error(f"Failed to open PDF {pdf_path}: {e}")
-        return status, tmp_dir
+        return None, tmp_dir
 
     num_pages = len(pdf_document)
     
@@ -196,7 +198,7 @@ def process_pdf(pdf_path: str, output_dir: str) -> tuple[dict, str]:
         page_key = f"page_{page_num}"
         current = status.get(page_key)
         
-        if isinstance(current, dict) and current.get("status") in ("extracted", "classified"):
+        if isinstance(current, dict) and (current.get("status") in ("extracted", "classified") or "category" in current):
             continue
             
         try:

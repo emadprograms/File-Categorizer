@@ -72,3 +72,12 @@ def test_process_pdf_retry_logic(mock_extract, tmp_path):
     # We retry once per page, so it should be extracted
     assert status["page_0"]["status"] == "extracted"
     assert mock_extract.call_count == 2
+
+def test_process_pdf_invalid_file(tmp_path):
+    invalid_pdf = str(tmp_path / "invalid.pdf")
+    with open(invalid_pdf, "w") as f:
+        f.write("not a pdf")
+        
+    status, tmp_dir = process_pdf(invalid_pdf, str(tmp_path))
+    assert status is None
+    assert os.path.exists(tmp_dir)

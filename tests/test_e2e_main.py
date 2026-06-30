@@ -36,7 +36,7 @@ def test_full_pipeline(mock_sleep, mock_client, tmp_path):
         main()
         
     # Verify outputs
-    report_path = out_dir / "sample.pdf_report.json"
+    report_path = out_dir / "sample_report.json"
     assert report_path.exists()
     
     with open(report_path, "r") as f:

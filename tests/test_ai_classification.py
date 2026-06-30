@@ -38,7 +38,9 @@ def test_classify_pages_success(mock_sleep, mock_client, temp_dir):
         status = json.load(f)
         
     assert status["page_0"]["category"] == "invoice"
+    assert status["page_0"]["status"] == "classified"
     assert status["page_1"]["category"] == "invoice"
+    assert status["page_1"]["status"] == "classified"
     assert status["page_2"] == "error"  # Was skipped
     
     # 7 second limit enforced?
@@ -90,3 +92,4 @@ def test_classify_pages_rate_limit(mock_sleep, mock_client, temp_dir):
         status = json.load(f)
         
     assert status["page_0"]["category"] == "invoice"
+    assert status["page_0"]["status"] == "classified"
