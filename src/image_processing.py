@@ -1,3 +1,10 @@
+"""
+Image processing utilities for PDF document analysis.
+
+This module provides functions for extracting pages from PDF documents, cleaning
+them up (deskewing, illumination normalization, and diacritic boosting), and
+saving them as high-quality images ready for OCR or classification.
+"""
 import os
 import json
 import logging
@@ -7,7 +14,18 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-def adjust_levels(image, black_point, white_point):
+def adjust_levels(image: np.ndarray, black_point: int, white_point: int) -> np.ndarray:
+    """
+    Adjust the tonal range of an image by mapping the black point and white point.
+    
+    Args:
+        image: The input image as a NumPy array.
+        black_point: The pixel value to map to true black (0).
+        white_point: The pixel value to map to true white (255).
+        
+    Returns:
+        The adjusted image as a NumPy array.
+    """
     lut = np.zeros(256, dtype=np.uint8)
     for i in range(256):
         if i <= black_point:
@@ -18,7 +36,17 @@ def adjust_levels(image, black_point, white_point):
             lut[i] = int(((i - black_point) / (white_point - black_point)) * 255.0)
     return cv2.LUT(image, lut)
 
-def auto_deskew(image):
+def auto_deskew(image: np.ndarray) -> np.ndarray:
+    """
+    Automatically detect and correct text skew in a grayscale image.
+    
+    Args:
+        image: The input grayscale image as a NumPy array.
+        
+    Returns:
+        The deskewed image, or the original image if no skew was detected
+        or the skew angle was negligible.
+    """
     thresh = cv2.bitwise_not(image)
     _, thresh = cv2.threshold(thresh, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     
@@ -42,9 +70,24 @@ def auto_deskew(image):
     rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
     return rotated
 
-def extract_and_clean_page(pdf_document, page_num: int, tmp_dir: str) -> str:
+def extract_and_clean_page(pdf_document: fitz.Document, page_num: int, tmp_dir: str) -> str:
     """
-    Extracts a single page from a PyMuPDF document, cleans it exactly like the reference implementation, and saves it as an image.
+    Extracts a single page from a PyMuPDF document, cleans it to improve readability,
+    and saves it as an image.
+    
+    The cleaning process includes auto-deskewing, illumination normalization,
+    and diacritic boosting.
+    
+    Args:
+        pdf_document: The opened PyMuPDF Document object.
+        page_num: The 0-indexed page number to extract.
+        tmp_dir: The temporary directory to save the intermediate and final images.
+        
+    Returns:
+        The file path to the cleaned image.
+        
+    Raises:
+        ValueError: If the raw image cannot be read from disk.
     """
     page = pdf_document.load_page(page_num)
     
@@ -75,14 +118,11 @@ def extract_and_clean_page(pdf_document, page_num: int, tmp_dir: str) -> str:
     bg = cv2.GaussianBlur(bg, (21, 21), 0)
     
     # 5. Illumination Normalization (Division)
-    # The study does not handle division by zero explicitly, relying on float32 division
-    # We will replicate the EXACT math from clean_ocr_image.py:
-    # normalized = 255 * (gray.astype(np.float32) / bg.astype(np.float32))
-    
-    # Small safeguard to prevent actual crash, but mathematically identical to study's nan/inf handling
+    # Use np.errstate to handle division by zero smoothly
     bg_float = bg.astype(np.float32)
-    bg_float[bg_float == 0] = 1e-6
-    normalized = 255.0 * (gray.astype(np.float32) / bg_float)
+    gray_float = gray.astype(np.float32)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        normalized = np.where(bg_float > 0, 255.0 * (gray_float / bg_float), 255.0)
     normalized = np.clip(normalized, 0, 255).astype(np.uint8)
     
     # 6. Wash Out Light Colors ("Clean Background")
@@ -111,7 +151,19 @@ def extract_and_clean_page(pdf_document, page_num: int, tmp_dir: str) -> str:
 def process_pdf(pdf_path: str, output_dir: str) -> tuple[dict, str]:
     """
     Processes all pages in a PDF, saving cleaned images to a temporary directory.
-    Returns the page status dict and the path to the temp directory.
+    
+    This function tracks progress in a `progress.json` file to allow resuming
+    interrupted processing. It performs a first pass over all pages and then
+    retries any pages that failed.
+    
+    Args:
+        pdf_path: The file path to the input PDF document.
+        output_dir: The directory where the temporary folder will be created.
+        
+    Returns:
+        A tuple containing:
+            - A dictionary tracking the processing status of each page.
+            - The path to the temporary directory created for this PDF.
     """
     basename = os.path.basename(pdf_path)
     tmp_dir = os.path.join(output_dir, f".tmp_{basename}")

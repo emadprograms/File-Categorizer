@@ -49,3 +49,14 @@
 
 1. PDF page metadata is updated with the categorized result.
 2. A JSON/CSV report is generated mapping each page to its category.
+
+### Phase 04.1: Close audit gaps: AI model mismatch, CSV generation, and file leak (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 4
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 04.1 to break down)

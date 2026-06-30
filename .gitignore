@@ -4,3 +4,9 @@ __pycache__/
 .env
 pdfs/
 pdfs_output/
+
+.venv/
+scratch/
+out/
+.planning/tmp/
+

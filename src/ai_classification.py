@@ -1,3 +1,9 @@
+"""
+AI Classification module.
+
+This module handles communicating with the Google GenAI API to categorize
+cleaned document images into predefined categories.
+"""
 import os
 import json
 import time
@@ -9,7 +15,20 @@ from google.genai.errors import APIError
 
 logger = logging.getLogger(__name__)
 
-def classify_pages(tmp_dir: str, categories: list) -> None:
+def classify_pages(tmp_dir: str, categories: list, model: str = 'gemma-4-26b') -> None:
+    """
+    Classifies processed PDF pages using a vision model.
+    
+    This function reads the `progress.json` file to find pages that have been
+    successfully extracted, uploads the images to the GenAI API, and prompts the
+    model to categorize them into one of the provided categories. It updates the
+    progress file with the classification results.
+    
+    Args:
+        tmp_dir: The temporary directory containing the extracted images and `progress.json`.
+        categories: A list of valid category strings.
+        model: The name of the Google GenAI vision model to use (default: 'gemma-4-26b').
+    """
     progress_file = os.path.join(tmp_dir, "progress.json")
     
     if not os.path.exists(progress_file):
@@ -50,40 +69,48 @@ def classify_pages(tmp_dir: str, categories: list) -> None:
             try:
                 # Prepare image and prompt
                 image = client.files.upload(file=image_path)
-                prompt = (
-                    "Categorize this Arabic PDF page. "
-                    "You must select EXACTLY ONE category from the following list: "
-                    f"{categories}. "
-                    "Respond with a JSON object containing 'category' (the chosen category) "
-                    "and 'reason' (the thinking or evidence from the page justifying this choice)."
-                )
-                
-                last_call_time = time.time()
-                
-                response = client.models.generate_content(
-                    model='gemma-4-31b-it',
-                    contents=[image, prompt],
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        response_schema={"type": "object", "properties": {"category": {"type": "string"}, "reason": {"type": "string"}}, "required": ["category", "reason"]}
-                    )
-                )
-                
                 try:
-                    result = json.loads(response.text)
-                    category = result.get("category")
+                    prompt = (
+                        "Categorize this Arabic PDF page. "
+                        "You must select EXACTLY ONE category from the following list: "
+                        f"{categories}. "
+                        "Respond with a JSON object containing 'category' (the chosen category) "
+                        "and 'reason' (the thinking or evidence from the page justifying this choice)."
+                    )
                     
-                    if category in categories:
-                        status[page_key] = {
-                            "category": category,
-                            "reason": result.get("reason", "")
-                        }
-                        classified = True
-                        break
-                    else:
-                        logger.warning(f"Invalid category '{category}' returned for {page_key}")
-                except json.JSONDecodeError:
-                    logger.warning(f"Invalid JSON returned for {page_key}")
+                    last_call_time = time.time()
+                    
+                    response = client.models.generate_content(
+                        model=model,
+                        contents=[image, prompt],
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            response_schema={"type": "object", "properties": {"category": {"type": "string"}, "reason": {"type": "string"}}, "required": ["category", "reason"]}
+                        )
+                    )
+                    
+                    try:
+                        result = json.loads(response.text)
+                        category = result.get("category")
+                        
+                        if category in categories:
+                            status[page_key] = {
+                                "category": category,
+                                "reason": result.get("reason", "")
+                            }
+                            classified = True
+                            break
+                        else:
+                            logger.warning(f"Invalid category '{category}' returned for {page_key}")
+                    except json.JSONDecodeError:
+                        logger.warning(f"Invalid JSON returned for {page_key}")
+                finally:
+                    try:
+                        # Clean up the file from cloud storage
+                        client.files.delete(name=image.name)
+                    except Exception as e:
+                        logger.warning(f"Failed to delete {image.name} from cloud storage: {e}")
+                    
                     
             except APIError as e:
                 if e.code == 429:

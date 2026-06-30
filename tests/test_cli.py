@@ -28,9 +28,9 @@ class TestUtils(unittest.TestCase):
         categories = load_categories(json_path)
         self.assertEqual(categories, ["Invoice", "Receipt"])
         
-    def test_load_categories_not_found(self):
-        with self.assertRaises(FileNotFoundError):
-            load_categories("nonexistent_file_path.txt")
+    def test_load_categories_inline(self):
+        categories = load_categories("Invoice, Receipt, Letter")
+        self.assertEqual(categories, ["Invoice", "Receipt", "Letter"])
 
 class TestCLI(unittest.TestCase):
     def test_parse_args(self):

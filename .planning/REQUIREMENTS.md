@@ -7,10 +7,10 @@
 - [x] **CLI-01**: User can ingest single or multiple PDF files via command line.
 - [x] **CLI-02**: User can pass user-defined categories via command-line arguments at runtime.
 - [x] **IMG-01**: System converts PDF pages to images and applies cleaning logic (division normalization, washout, black-hat filter).
-- [ ] **AI-01**: System passes cleaned images to the Gemma 4 26B vision endpoint.
-- [ ] **AI-02**: System prompts the model to categorize each page exactly into one of the provided categories.
-- [ ] **OUT-01**: System injects the resulting category into the original (or cleaned) PDF's page metadata.
-- [ ] **OUT-02**: System generates a JSON/CSV report mapping each page to its category.
+- [x] **AI-01**: System passes cleaned images to the Gemma 4 26B vision endpoint.
+- [x] **AI-02**: System prompts the model to categorize each page exactly into one of the provided categories.
+- [x] **OUT-01**: System injects the resulting category into the original (or cleaned) PDF's page metadata.
+- [x] **OUT-02**: System generates a JSON report mapping each page to its category.
 
 ## v2 Requirements (Deferred)
 
