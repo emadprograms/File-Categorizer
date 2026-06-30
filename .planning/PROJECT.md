@@ -13,11 +13,11 @@ Accurately pre-process and classify degraded Arabic documents (poor contrast/wat
 ### Validated
 
 - ✓ Image cleaning logic (green channel extraction, division normalization, white point washout, black-hat filter) — inherited from prior research.
+- ✓ CLI scaffolding for batch processing PDFs (Validated in Phase 01: CLI Scaffolding).
+- ✓ Mechanism to ingest categories via command-line arguments at runtime (Validated in Phase 01: CLI Scaffolding).
 
 ### Active
 
-- [ ] CLI scaffolding for batch processing PDFs.
-- [ ] Mechanism to ingest categories via command-line arguments at runtime.
 - [ ] Apply image cleaning to each page in the PDF.
 - [ ] Integrate with Vision LLM (Gemma 4 26B) endpoint to classify each page using the cleaned image.
 - [ ] Update PDF page metadata with the classification result.
