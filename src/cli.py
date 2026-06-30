@@ -9,6 +9,10 @@ from src.utils import load_categories
 from src.image_processing import process_pdf
 from src.ai_classification import classify_pages
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description="Arabic PDF OCR & Categorization CLI")
