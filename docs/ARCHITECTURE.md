@@ -9,7 +9,7 @@ The File-Categorizer is a CLI application that processes Arabic PDF documents by
 
 ```mermaid
 graph TD
-    CLI[src/cli.py] --> Utils[src/utils.py]
+    CLI[src/main.py] --> Utils[src/utils.py]
     CLI --> ImageProcessing[src/image_processing.py]
     CLI --> AI[src/ai_classification.py]
     CLI --> Metadata[src/metadata.py]
@@ -22,14 +22,14 @@ graph TD
 
 ## Data Flow
 
-1. **Input Parsing**: `cli.py` reads user arguments, loading categories from `utils.py` and expanding glob patterns for input PDFs.
+1. **Input Parsing**: `main.py` reads user arguments, loading categories from `utils.py` and expanding glob patterns for input PDFs.
 2. **Image Processing**: `process_pdf` inside `image_processing.py` converts each PDF page to an image and applies enhancements (division normalization and diacritic boosting) for better readability.
 3. **AI Classification**: `classify_pages` in `ai_classification.py` sends the processed images to a Vision Model (Gemma 4 26B) which classifies each page against the loaded categories.
-4. **Metadata Generation**: The classification status is collected in `cli.py` and passed to `generate_report` and `inject_pdf_metadata` in `metadata.py` to create a structured JSON report and a final output PDF containing the embedded metadata.
+4. **Metadata Generation**: The classification status is collected in `main.py` and passed to `generate_report` and `inject_pdf_metadata` in `metadata.py` to create a structured JSON report and a final output PDF containing the embedded metadata.
 
 ## Key Abstractions
 
-- `parse_args` in `src/cli.py` — Parses CLI arguments and handles glob expansions.
+- `parse_args` in `src/main.py` — Parses CLI arguments and handles glob expansions.
 - `process_pdf` in `src/image_processing.py` — Converts PDF pages to enhanced images.
 - `classify_pages` in `src/ai_classification.py` — Prompts the vision model for page classification.
 - `generate_report` in `src/metadata.py` — Formats the AI classification output into a structured report.

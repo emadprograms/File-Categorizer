@@ -32,10 +32,6 @@ python src/main.py --input-pdfs docs/*.pdf --categories "Invoice,Receipt,Contrac
 python src/main.py -i invoice.pdf -c categories.txt -m gemma-4-31b-it --instructions instructions.txt
 ```
 
-## Contributing
-
-See CONTRIBUTING.md for guidelines.
-
 ## License
 
 This project is unlicensed or its license is not specified in the repository.
